@@ -475,7 +475,7 @@ int32_t CFFmpegRgb2Yuv::rgb2yuv(unsigned char* dst, unsigned char* src) {
 
 
 #include "msdk_encode.h"
-int main(int argc, char** argv) {
+int main0(int argc, char** argv) {
 
 	std::string paramter("-g 1920x1080 -b 3000 -f 30/1 -gop 45");
 
