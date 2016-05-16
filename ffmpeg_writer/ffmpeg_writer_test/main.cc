@@ -26,6 +26,8 @@ int32_t WriteNextFrame(unsigned char* buffer, int32_t buffer_len, void*  ctx) {
 
 int main(int argc, char** argv) {
 
+#if 0
+	//color space convert
 	int32_t yuv_len = 1920 * 1080 * 3 / 2;
 	unsigned char* yuv_buf = new unsigned char[yuv_len];
 	unsigned char* rgb_buf = new unsigned char[yuv_len * 2];
@@ -46,12 +48,12 @@ int main(int argc, char** argv) {
 
 		printf("frame:%d\n", ++i);
 	}
-
 	ifs.close();
 	ofs.close();
+//	return 0;
+#endif
 
-	return 0;
-
+	//encode record
 	std::string paramter("-g 1920x1080 -b 3000 -f 25/1 -gop 25");
 
 	CFFmpegWriter ffwriter;

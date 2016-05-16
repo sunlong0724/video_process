@@ -18,5 +18,5 @@
 *.yuv
 *.sdf
 *.opendb
-*.suo
 */x64/
+*/output/*

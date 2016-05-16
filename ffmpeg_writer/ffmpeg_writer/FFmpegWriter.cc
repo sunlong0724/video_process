@@ -303,7 +303,7 @@ int32_t CFFmpegWriter::initialize(const std::string& parameters) {
 	* of which frame timestamps are represented. For fixed-fps content,
 	* timebase should be 1/framerate and timestamp increments should be
 	* identical to 1. */
-	m_pAVStream->time_base = { cmdOpts.values.FrameRateN, cmdOpts.values.FrameRateD };
+	m_pAVStream->time_base = { cmdOpts.values.FrameRateD,cmdOpts.values.FrameRateN };
 
 	//FIXME:
 	//AVCodecParameters *c = m_pAVStream->codecpar;
@@ -317,7 +317,6 @@ int32_t CFFmpegWriter::initialize(const std::string& parameters) {
 
 
 	c->time_base = m_pAVStream->time_base;
-	c->sample_aspect_ratio = m_pAVStream->time_base;
 	c->gop_size = cmdOpts.values.GopPicSize; /* emit one intra frame every twelve frames at most */
 	c->pix_fmt = AV_PIX_FMT_YUV420P;
 	c->max_b_frames = 1;//test
