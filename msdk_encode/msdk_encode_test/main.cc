@@ -160,17 +160,17 @@ int32_t WriteNextFrame(unsigned char* buffer, int32_t buffer_len, void*  ctx) {
 	nBytesWritten = fwrite(buffer, 1, buffer_len, fp);
 
 	//test
-	static int i = 0;
+	//static int i = 0;
 
-	//00 00 00 01 09 10 00 00 00 01 27
-	if (buffer[5] == 0x10) {
-		char file_buf[1024];
-		snprintf(file_buf, sizeof file_buf, "%02d.264", i);
-		FILE* t_fp = fopen(file_buf, "wb");
-		nBytesWritten = fwrite(buffer, 1, buffer_len, t_fp);
-		fclose(t_fp);
-	}
-	i++;
+	////00 00 00 01 09 10 00 00 00 01 27
+	//if (buffer[5] == 0x10) {
+	//	char file_buf[1024];
+	//	snprintf(file_buf, sizeof file_buf, "%02d.264", i);
+	//	FILE* t_fp = fopen(file_buf, "wb");
+	//	nBytesWritten = fwrite(buffer, 1, buffer_len, t_fp);
+	//	fclose(t_fp);
+	//}
+	//i++;
 	
 	return (int32_t)nBytesWritten;
 }
@@ -180,16 +180,16 @@ int main(int /*argc*/, char** /*argv*/) {
 	FILE* source_fp = NULL;
 	FILE* sink_fp = NULL;
 
-	char* source_name = "trailer_1080p.yuv";
+	char* source_name = "trailer_640_480p.yuv";
 	char* sink_name = "out.264";
 
 	source_fp = fopen(source_name, "rb");
 	sink_fp = fopen(sink_name, "wb");
 
 	CEncodeThread encode;
-	std::string paramter("-g 1920x1080 -b 3000 -f 30/1 -gop 45");
+	std::string paramter("-g 640x480 -b 3000 -f 170/1 -gop 45");
 	encode.init(paramter.data());
-	encode.start(ReadNextFrame, source_fp, WriteNextFrame, sink_fp);
+	encode.start(std::bind(ReadNextFrame, std::placeholders::_1, std::placeholders::_2, source_fp), std::bind(WriteNextFrame, std::placeholders::_1, std::placeholders::_2, sink_fp) );
 	encode.join();
 
 	fclose(sink_fp);

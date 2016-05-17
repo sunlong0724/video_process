@@ -439,8 +439,8 @@ int32_t CFFmpegRgb2Yuv::initialize(int16_t src_w, int16_t src_h, int16_t src_fmt
 	m_dst_h = dst_h;
 	m_dst_fmt = dst_fmt;
 
-	m_pSwsCtx = sws_getContext(m_src_w, m_src_h, AV_PIX_FMT_YUV420P,
-		m_dst_w, m_dst_h, AV_PIX_FMT_BGR24, SWS_BILINEAR, 0, 0, 0);
+	m_pSwsCtx = sws_getContext(m_src_w, m_src_h, AVPixelFormat(m_src_fmt),
+		m_dst_w, m_dst_h, AVPixelFormat(m_dst_fmt), SWS_BILINEAR, 0, 0, 0);
 	return 0;
 }
 int32_t CFFmpegRgb2Yuv::uninitialize() {
@@ -453,7 +453,7 @@ int32_t CFFmpegRgb2Yuv::yuv2rgb(unsigned char* dst, unsigned char* src){
 		return -1;
 	AVFrame yuv_frame, rgb_frame;
 	av_image_fill_arrays(yuv_frame.data, yuv_frame.linesize, src, AV_PIX_FMT_YUV420P, m_src_w, m_src_h, 16);
-	av_image_fill_arrays(rgb_frame.data, rgb_frame.linesize, dst, AV_PIX_FMT_BGR24, m_dst_w, m_dst_h, 1);
+	av_image_fill_arrays(rgb_frame.data, rgb_frame.linesize, dst, (AVPixelFormat)m_dst_fmt, m_dst_w, m_dst_h, 1);
 
 	int ret = sws_scale(m_pSwsCtx, yuv_frame.data, yuv_frame.linesize, 0, m_src_h, rgb_frame.data, rgb_frame.linesize);
 	return ret;
@@ -463,8 +463,8 @@ int32_t CFFmpegRgb2Yuv::rgb2yuv(unsigned char* dst, unsigned char* src) {
 	if (dst == NULL || src == NULL)
 		return -1;
 	AVFrame yuv_frame, rgb_frame;
-	av_image_fill_arrays(yuv_frame.data, yuv_frame.linesize, src, AV_PIX_FMT_YUV420P, m_src_w, m_src_h, 16);
-	av_image_fill_arrays(rgb_frame.data, rgb_frame.linesize, dst, AV_PIX_FMT_BGR24, m_dst_w, m_dst_h, 1);
+	av_image_fill_arrays(rgb_frame.data, rgb_frame.linesize, src, AVPixelFormat(m_src_fmt), m_src_w, m_src_h, 1);
+	av_image_fill_arrays(yuv_frame.data, yuv_frame.linesize, dst, AV_PIX_FMT_YUV420P, m_dst_w, m_dst_h, 16);
 
 	int ret = sws_scale(m_pSwsCtx, rgb_frame.data, rgb_frame.linesize, 0, m_src_h, yuv_frame.data, yuv_frame.linesize);
 	return ret;
@@ -489,12 +489,12 @@ int main0(int argc, char** argv) {
 	CEncodeThread encode;
 	
 	encode.init(paramter.data());
-	encode.start(ReadNextFrame, source_fp, WriteNextFrame, &ffwriter);
+	encode.start(std::bind(ReadNextFrame, std::placeholders::_1, std::placeholders::_2, source_fp), std::bind(WriteNextFrame, std::placeholders::_1, std::placeholders::_2, &ffwriter));
 	encode.join();
 
 	fseek(source_fp, 0, SEEK_SET);
 	encode.init(paramter.data());
-	encode.start(ReadNextFrame, source_fp, WriteNextFrame, &ffwriter);
+	encode.start(std::bind(ReadNextFrame, std::placeholders::_1, std::placeholders::_2, source_fp), std::bind(WriteNextFrame, std::placeholders::_1, std::placeholders::_2, &ffwriter));
 	encode.join();
 
 

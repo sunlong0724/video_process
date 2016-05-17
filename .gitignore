@@ -20,3 +20,7 @@
 *.opendb
 */x64/
 */output/*
+*.aac
+*.mov
+*.pcm
+*.lib

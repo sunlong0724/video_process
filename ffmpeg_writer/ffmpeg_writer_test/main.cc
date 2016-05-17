@@ -67,12 +67,12 @@ int main(int argc, char** argv) {
 	CEncodeThread encode;
 
 	encode.init(paramter.data());
-	encode.start(ReadNextFrame, source_fp, WriteNextFrame, &ffwriter);
+	encode.start(std::bind(ReadNextFrame, std::placeholders::_1, std::placeholders::_2, source_fp), std::bind(WriteNextFrame, std::placeholders::_1, std::placeholders::_2, &ffwriter));
 	encode.join();
 
 	fseek(source_fp, 0, SEEK_SET);
 	encode.init(paramter.data());
-	encode.start(ReadNextFrame, source_fp, WriteNextFrame, &ffwriter);
+	encode.start(std::bind(ReadNextFrame, std::placeholders::_1, std::placeholders::_2, source_fp), std::bind(WriteNextFrame, std::placeholders::_1, std::placeholders::_2, &ffwriter));
 	encode.join();
 
 

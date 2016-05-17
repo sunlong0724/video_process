@@ -89,10 +89,10 @@ int main(int argc, char* argv[])
 
 	FILE *in_file = NULL;	                        //Raw PCM data
 	int framenum = 1000;                          //Audio frame number
-	const char* out_file = "tdjm.aac";          //Output URL
+	const char* out_file = "trailer_1080p_encode.aac";          //Output URL
 	int i;
 
-	in_file = fopen("tdjm.pcm", "rb");
+	in_file = fopen("trailer_1080p.pcm", "rb");
 
 	av_register_all();
 
@@ -202,3 +202,90 @@ int main(int argc, char* argv[])
 }
 
 
+extern "C" {
+#include "libavcodec/avcodec.h"
+#include "libavformat/avformat.h"
+#include "libavutil/avutil.h"
+#include "libavutil/imgutils.h"
+#include "libswscale/swscale.h"
+}
+
+
+class CFFmpegAudioWriter {
+
+	int32_t encode() {
+		AVStream *st;
+
+		/* pts of the next frame that will be generated */
+		int64_t next_pts;
+		int samples_count;
+
+		AVFrame *frame;
+		AVFrame *tmp_frame;
+
+		float t, tincr, tincr2;
+
+		struct SwsContext *sws_ctx;
+		struct SwrContext *swr_ctx;
+
+
+		AVOutputFormat *fmt;
+		AVFormatContext *oc;
+		AVCodec *audio_codec;
+
+		/* allocate the output media context */
+		avformat_alloc_output_context2(&oc, NULL, NULL, "1.mp4");
+
+		if (!oc)
+			return 1;
+
+		fmt = oc->oformat;
+
+
+		if (fmt->audio_codec != AV_CODEC_ID_NONE) {
+			//add_stream(&audio_st, oc, &audio_codec, fmt->audio_codec);
+
+			AVCodecContext *c;
+			int i;
+
+			/* find the encoder */
+			audio_codec = avcodec_find_encoder(fmt->audio_codec);
+			if (!(audio_codec)) {
+				fprintf(stderr, "Could not find encoder for '%s'\n",
+					avcodec_get_name(codec_id));
+				exit(1);
+			}
+
+			st = avformat_new_stream(oc, audio_codec);
+			if (!st) {
+				fprintf(stderr, "Could not allocate stream\n");
+				exit(1);
+			}
+			st->id = oc->nb_streams - 1;
+			c = st->codec;
+		}
+
+		c->sample_fmt = (*codec)->sample_fmts ?
+			(*codec)->sample_fmts[0] : AV_SAMPLE_FMT_FLTP;
+		c->bit_rate = 64000;
+		c->sample_rate = 44100;
+		if ((*codec)->supported_samplerates) {
+			c->sample_rate = (*codec)->supported_samplerates[0];
+			for (i = 0; (*codec)->supported_samplerates[i]; i++) {
+				if ((*codec)->supported_samplerates[i] == 44100)
+					c->sample_rate = 44100;
+			}
+		}
+		c->channels = av_get_channel_layout_nb_channels(c->channel_layout);
+		c->channel_layout = AV_CH_LAYOUT_STEREO;
+		if ((*codec)->channel_layouts) {
+			c->channel_layout = (*codec)->channel_layouts[0];
+			for (i = 0; (*codec)->channel_layouts[i]; i++) {
+				if ((*codec)->channel_layouts[i] == AV_CH_LAYOUT_STEREO)
+					c->channel_layout = AV_CH_LAYOUT_STEREO;
+			}
+		}
+		c->channels = av_get_channel_layout_nb_channels(c->channel_layout);
+		ost->st->time_base = (AVRational) { 1, c->sample_rate };
+	}
+};

@@ -69,18 +69,18 @@ int32_t WriteNextFrame(unsigned char* buffer, int32_t buffer_len, void*  ctx) {
 
 
 
-void CEncodeThread::start(_SourceDataCallback ReadNextFrameCallback, void* source_ctx, _SinkDataCallback WriteFrameCallback, void* sink_ctx) {
+void CEncodeThread::start(_SourceDataCallback ReadNextFrameCallback, _SinkDataCallback WriteFrameCallback) {
 	m_exited = false;
 	m_source_callback = ReadNextFrameCallback;
-	m_source_ctx = source_ctx;
 	m_sink_callback = WriteFrameCallback;
-	m_sink_ctx = sink_ctx;
 	m_impl = std::thread(&CEncodeThread::run, this);
 }
 
 void CEncodeThread::stop() {
+	printf("1%s\n", __FUNCTION__);
 	m_exited = true;
 	m_impl.join();
+	printf("%s\n", __FUNCTION__);
 }
 
 void CEncodeThread::join() {
@@ -105,15 +105,15 @@ int32_t CEncodeThread::run() {
 	strcpy(params_buf, m_parameter_buf);
 
 	char* p = strtok(params_buf, " ");
-	int i = 0;
+	int j = 0;
 	while (p) {
-		parameters[i] = new char[strlen(p) + 1];
-		strcpy(parameters[i++], p);
+		parameters[j] = new char[strlen(p) + 1];
+		strcpy(parameters[j++], p);
 		p = strtok(NULL, " ");
 	}
-	ParseOptions(i, parameters, &options);
-	while (i > 0) {
-		delete[] parameters[--i];
+	ParseOptions(j, parameters, &options);
+	while (j > 0) {
+		delete[] parameters[--j];
 	}
 
 	mfxStatus sts = MFX_ERR_NONE;
@@ -242,11 +242,16 @@ int32_t CEncodeThread::run() {
 	//
 	// Stage 1: Main encoding loop
 	//
-	while (!this->m_exited || MFX_ERR_NONE <= sts || MFX_ERR_MORE_DATA == sts) {
+	while (!this->m_exited /*|| MFX_ERR_NONE <= sts || MFX_ERR_MORE_DATA == sts*/) {
 		nEncSurfIdx = GetFreeSurfaceIndex(pEncSurfaces, nEncSurfNum);   // Find free frame surface
 		MSDK_CHECK_ERROR(MFX_ERR_NOT_FOUND, nEncSurfIdx, MFX_ERR_MEMORY_ALLOC);
 
-		mfxU32 nBytesRead =  this->m_source_callback(swap_buffer, swap_buffer_len, m_source_ctx);
+		mfxI32 nBytesRead =  this->m_source_callback(swap_buffer, swap_buffer_len);
+		if (-1 == nBytesRead) {
+			MSDK_SLEEP(3);
+			continue;
+		}
+
 		sts = LoadRawFrame(pEncSurfaces[nEncSurfIdx], swap_buffer, nBytesRead);
 		MSDK_BREAK_ON_ERROR(sts);
 
@@ -274,7 +279,7 @@ int32_t CEncodeThread::run() {
 			sts = session.SyncOperation(syncp, 60000);      // Synchronize. Wait until encoded frame is ready
 			MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
-			mfxU32 nBytesWritten = m_sink_callback(mfxBS.Data + mfxBS.DataOffset, mfxBS.DataLength, m_sink_ctx);
+			mfxU32 nBytesWritten = m_sink_callback(mfxBS.Data + mfxBS.DataOffset, mfxBS.DataLength);
 			if (nBytesWritten != mfxBS.DataLength)
 				sts = MFX_ERR_UNDEFINED_BEHAVIOR;
 			MSDK_BREAK_ON_ERROR(sts);
@@ -316,7 +321,7 @@ int32_t CEncodeThread::run() {
 			sts = session.SyncOperation(syncp, 60000);      // Synchronize. Wait until encoded frame is ready
 			MSDK_CHECK_RESULT(sts, MFX_ERR_NONE, sts);
 
-			mfxU32 nBytesWritten = m_sink_callback(mfxBS.Data + mfxBS.DataOffset, mfxBS.DataLength, m_sink_ctx);
+			mfxU32 nBytesWritten = m_sink_callback(mfxBS.Data + mfxBS.DataOffset, mfxBS.DataLength);
 			if (nBytesWritten != mfxBS.DataLength)
 				sts = MFX_ERR_UNDEFINED_BEHAVIOR;
 			MSDK_BREAK_ON_ERROR(sts);
@@ -374,7 +379,7 @@ int main(int /*argc*/, char** /*argv*/) {
 	CEncodeThread encode;
 	std::string paramter("-g 1920x1080 -b 3000 -f 30/1 -gop 30");
 	encode.init(paramter.data());
-	encode.start(ReadNextFrame,NULL, WriteNextFrame,NULL);
+	encode.start(std::bind(ReadNextFrame, std::placeholders::_1,std::placeholders::_2, g_reader), std::bind(WriteNextFrame, std::placeholders::_1, std::placeholders::_2, g_writer));
 	encode.join();
 
 	return 0;
