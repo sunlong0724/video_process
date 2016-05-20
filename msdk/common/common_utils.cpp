@@ -295,6 +295,8 @@ mfxStatus ReadBitStreamData(mfxBitstream* pBS, FILE* fSource)
     return MFX_ERR_NONE;
 }
 
+
+
 mfxStatus WriteSection(mfxU8* plane, mfxU16 factor, mfxU16 chunksize,
                        mfxFrameInfo* pInfo, mfxFrameData* pData, mfxU32 i,
                        mfxU32 j, FILE* fSink)
@@ -333,6 +335,48 @@ mfxStatus WriteRawFrame(mfxFrameSurface1* pSurface, FILE* fSink)
                              fSink);
 
     return sts;
+}
+
+
+mfxStatus WriteSection(mfxU8* plane, mfxU16 factor, mfxU16 chunksize,
+	mfxFrameInfo* pInfo, mfxFrameData* pData, mfxU32 i,
+	mfxU32 j, mfxU8* buffer, mfxU32 buffer_size, mfxU32& data_size)
+{
+	//if (chunksize !=
+	//	fwrite(plane +
+	//		(pInfo->CropY * pData->Pitch / factor + pInfo->CropX) +
+	//		i * pData->Pitch + j, 1, chunksize, fSink))
+	//	return MFX_ERR_UNDEFINED_BEHAVIOR;
+
+	memcpy(buffer + data_size, plane + (pInfo->CropY * pData->Pitch / factor + pInfo->CropX) + i * pData->Pitch + j, chunksize);
+	data_size += chunksize;
+
+	return MFX_ERR_NONE;
+}
+
+mfxStatus WriteRawFrame(mfxFrameSurface1* pSurface, mfxU8* buffer, mfxU32 buffer_size)
+{
+	mfxFrameInfo* pInfo = &pSurface->Info;
+	mfxFrameData* pData = &pSurface->Data;
+	mfxU32 i, j, h, w;
+	mfxStatus sts = MFX_ERR_NONE;
+
+	mfxU32 data_size = 0;
+	for (i = 0; i < pInfo->CropH; i++)
+		sts = WriteSection(pData->Y, 1, pInfo->CropW, pInfo, pData, i, 0, buffer, buffer_size, data_size);
+
+	h = pInfo->CropH / 2;
+	w = pInfo->CropW;
+	for (i = 0; i < h; i++)
+		for (j = 0; j < w; j += 2)
+			sts =
+			WriteSection(pData->UV, 2, 1, pInfo, pData, i, j, buffer, buffer_size, data_size);
+	for (i = 0; i < h; i++)
+		for (j = 1; j < w; j += 2)
+			sts =
+			WriteSection(pData->UV, 2, 1, pInfo, pData, i, j, buffer, buffer_size, data_size);
+
+	return sts;
 }
 
 int GetFreeTaskIndex(Task* pTaskPool, mfxU16 nPoolSize)
