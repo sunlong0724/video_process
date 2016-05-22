@@ -1,8 +1,0 @@
-﻿C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V140\Microsoft.CppBuild.targets(368,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
-    正在创建库 ..\output\msdk_decode_test.lib 和对象 ..\output\msdk_decode_test.exp
-  正在生成代码
-  0 of 214 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
-  已完成代码的生成
-  msdk_decode_test.vcxproj -> E:\workspace\video_process\msdk\msdk_decode_test\..\output\msdk_decode_test.exe

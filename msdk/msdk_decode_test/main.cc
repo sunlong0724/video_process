@@ -174,7 +174,7 @@ int main(int /*argc*/, char** /*argv*/) {
 	sink_fp = fopen(sink_name, "wb");
 
 	CDecodeThread decode;
-	std::string paramter("out.264");
+	std::string paramter("");
 	decode.init(paramter.data());
 	decode.start(std::bind(ReadNextFrame, std::placeholders::_1, std::placeholders::_2, source_fp), std::bind(WriteNextFrame, std::placeholders::_1, std::placeholders::_2, sink_fp) );
 	decode.join();
