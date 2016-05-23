@@ -25,4 +25,4 @@
 *.pcm
 *.lib
 */Debug
-*/*.db
+*/*/*.db
