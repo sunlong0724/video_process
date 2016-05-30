@@ -59,10 +59,10 @@ void ParseOptions(int argc, char** argv, CmdOptions* cmd_options)
 {
     int i;
 
-    //if (!cmd_options->ctx.program) {
-    //    cmd_options->ctx.program = argv[0];
-    //}
-    for (i = 0; i < argc; ++i) {
+    if (!cmd_options->ctx.program) {
+        cmd_options->ctx.program = argv[0];
+    }
+    for (i = 1; i < argc; ++i) {
         if (!strcmp(argv[i], "--help")) {
             PrintHelp(cmd_options);
             exit(0);

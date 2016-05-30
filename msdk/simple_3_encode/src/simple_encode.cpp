@@ -96,13 +96,12 @@ int32_t CEncodeThread::run() {
 	memset(&options, 0, sizeof(CmdOptions));
 	options.ctx.options = OPTIONS_ENCODE2;
 	options.ctx.usage = usage;
-	options.ctx.program = "encode";
 	// Set default values:
 	options.values.impl = MFX_IMPL_AUTO_ANY;
 
 	char* parameters[20];
-	char params_buf[1024];
-	strcpy(params_buf, m_parameter_buf);
+	char params_buf[1024] = "encode ";
+	strcat(params_buf, m_parameter_buf);
 
 	char* p = strtok(params_buf, " ");
 	int j = 0;
