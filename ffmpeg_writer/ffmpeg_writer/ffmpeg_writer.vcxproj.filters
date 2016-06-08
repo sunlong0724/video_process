@@ -20,9 +20,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="msdk_encode.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="FFmpegWriter.h">
       <Filter>头文件</Filter>
     </ClInclude>

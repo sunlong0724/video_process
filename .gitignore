@@ -26,3 +26,6 @@
 *.lib
 */Debug
 */*.db
+*.dll
+*.exe
+ffmpeg_writer/ffmpeg_writer/3rdParty/*

@@ -1,5 +1,7 @@
 #include "msdk_decode.h"
 
+#include <signal.h>
+#include <iostream>
 
 
 #define MSDK_FOPEN(FH, FN, M)           { FH=fopen(FN,M); }
@@ -156,28 +158,51 @@ int32_t WriteNextFrame(unsigned char* buffer, int32_t buffer_len, void*  ctx) {
 
 	MSDK_CHECK_POINTER(fp, MFX_ERR_NULL_PTR);
 	MSDK_CHECK_POINTER(buffer, MFX_ERR_NULL_PTR);
+	
 
+	// FIXME: DON'T WRITE !!! 
 	nBytesWritten = fwrite(buffer, 1, buffer_len, fp);
 
 	return (int32_t)nBytesWritten;
 }
 
-int main(int /*argc*/, char** /*argv*/) {
+bool g_running_flag = true;
+void sig_cb(int sig)
+{
+	if (sig == SIGINT) {
+		std::cout << __FUNCTION__ << std::endl;
+		g_running_flag = false;
+	}
+}
+
+
+int main(int argc, char** argv) {
+	signal(SIGINT, sig_cb);  /*×¢²áctrl+cÐÅºÅ²¶»ñº¯Êý*/
 
 	FILE* source_fp = NULL;
 	FILE* sink_fp = NULL;
 
-	char* source_name = "out.264";
+	if (argc < 2) {
+		fprintf(stderr, "two paramteters are needed!\n");
+		exit(0);
+	}
+
+
+	char* source_name = argv[1];
 	char* sink_name = "out.yuv";
 
 	source_fp = fopen(source_name, "rb");
 	sink_fp = fopen(sink_name, "wb");
 
 	CDecodeThread decode;
-	std::string paramter("");
+	std::string paramter("decode ");
 	decode.init(paramter.data());
 	decode.start(std::bind(ReadNextFrame, std::placeholders::_1, std::placeholders::_2, source_fp), std::bind(WriteNextFrame, std::placeholders::_1, std::placeholders::_2, sink_fp) );
-	decode.join();
+	
+	while(g_running_flag)
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+	decode.stop();
 
 	fclose(sink_fp);
 	fclose(source_fp);

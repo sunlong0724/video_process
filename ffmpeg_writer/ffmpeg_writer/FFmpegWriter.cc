@@ -471,7 +471,7 @@ int32_t CFFmpegRgb2Yuv::rgb2yuv(unsigned char* dst, unsigned char* src) {
 }
 
 
-
+#if 0
 
 #include "msdk_encode.h"
 int main0(int argc, char** argv) {
@@ -503,3 +503,5 @@ int main0(int argc, char** argv) {
 	fclose(source_fp);
 	return 0;
 }
+
+#endif

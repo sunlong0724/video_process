@@ -1,7 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "simple_decode_d3d", "simple_decode_d3d.vcxproj", "{AEE6CB8D-BDC3-4DFB-906B-E3A2DF69DC44}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "msdk_decode_test", "..\msdk_decode_test\msdk_decode_test.vcxproj", "{81EDB7B2-2356-439F-A550-3E1547DD27C9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,6 +23,14 @@ Global
 		{AEE6CB8D-BDC3-4DFB-906B-E3A2DF69DC44}.Release|Win32.Build.0 = Release|Win32
 		{AEE6CB8D-BDC3-4DFB-906B-E3A2DF69DC44}.Release|x64.ActiveCfg = Release|x64
 		{AEE6CB8D-BDC3-4DFB-906B-E3A2DF69DC44}.Release|x64.Build.0 = Release|x64
+		{81EDB7B2-2356-439F-A550-3E1547DD27C9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{81EDB7B2-2356-439F-A550-3E1547DD27C9}.Debug|Win32.Build.0 = Debug|Win32
+		{81EDB7B2-2356-439F-A550-3E1547DD27C9}.Debug|x64.ActiveCfg = Debug|x64
+		{81EDB7B2-2356-439F-A550-3E1547DD27C9}.Debug|x64.Build.0 = Debug|x64
+		{81EDB7B2-2356-439F-A550-3E1547DD27C9}.Release|Win32.ActiveCfg = Release|Win32
+		{81EDB7B2-2356-439F-A550-3E1547DD27C9}.Release|Win32.Build.0 = Release|Win32
+		{81EDB7B2-2356-439F-A550-3E1547DD27C9}.Release|x64.ActiveCfg = Release|x64
+		{81EDB7B2-2356-439F-A550-3E1547DD27C9}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

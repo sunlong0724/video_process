@@ -47,7 +47,7 @@ int32_t CFFmpegH264Encoder::run() {
 	* will always be I frame irrespective to gop_size
 	*/
 	m_pCodecCtx->gop_size = ENCODER_GOP_SIZE;
-	m_pCodecCtx->max_b_frames = 1;
+	m_pCodecCtx->max_b_frames = 0;
 	m_pCodecCtx->pix_fmt = AV_PIX_FMT_YUV420P;
 
 	av_opt_set(m_pCodecCtx->priv_data, "preset", "ultrafast", 0);
@@ -130,17 +130,30 @@ int32_t ReadNextFrame(int8_t* buffer, int32_t buffer_len, void* ctx) {
 	ifsp->read((char*)buffer, buffer_len);
 	fprintf(stderr, "%s, %d\n",__FUNCTION__, ++i);
 	if (ifsp->fail()) {
-		ifsp->clear();
-		ifsp->seekg(ifsp->beg);
+		//ifsp->clear();
+		//ifsp->seekg(ifsp->beg);
 		return 0;
 	}
 	return buffer_len;
 }
 
+static int index = 0;
+
 int32_t WriteNextFrame(int8_t* buffer, int32_t buffer_len, void*  ctx) {
 	std::ofstream* ofsp  = (std::ofstream*)ctx;
 	ofsp->write((char*)buffer, buffer_len);
 	fprintf(stderr,"%s, %d\n", __FUNCTION__, ++j);
+
+	char file[100];
+	sprintf(file, "%d.h264", ++index);
+	std::ofstream ofs(file, std::ofstream::out | std::ofstream::binary);
+	if (ofs.fail()) {
+		fprintf(stderr, __FUNCTION__);
+		return 0;
+	}
+	ofs.write((const char*)buffer, buffer_len);
+	ofs.close();
+
 	return buffer_len;
 }
 

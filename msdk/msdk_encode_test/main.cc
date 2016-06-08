@@ -175,19 +175,35 @@ int32_t WriteNextFrame(unsigned char* buffer, int32_t buffer_len, void*  ctx) {
 	return (int32_t)nBytesWritten;
 }
 
-int main(int /*argc*/, char** /*argv*/) {
+int main(int argc, char** argv) {
 
 	FILE* source_fp = NULL;
 	FILE* sink_fp = NULL;
 
-	char* source_name = "trailer_640_480p.yuv";
+	if (argc < 2) {
+		fprintf(stderr, "Parameters is invalid!\n");
+
+		fprintf(stdout, "Parameter: -g 640x480 -b 3000 -f 170/1 -gop 45\n");
+		return 0;
+	}
+
+	char* source_name = argv[1];
 	char* sink_name = "out.264";
 
 	source_fp = fopen(source_name, "rb");
 	sink_fp = fopen(sink_name, "wb");
 
 	CEncodeThread encode;
-	std::string paramter("-g 640x480 -b 3000 -f 170/1 -gop 45");
+	std::string paramter("-g 1920x1080 -b 3000 -f 170/1 -gop 45");
+
+	if (argc > 2) {
+		paramter.clear();
+		for (int i = 2; i < argc; ++i) {
+			paramter.append(argv[i]);
+			paramter.append(" ");
+		}
+	}
+
 	encode.init(paramter.data());
 	encode.start(std::bind(ReadNextFrame, std::placeholders::_1, std::placeholders::_2, source_fp), std::bind(WriteNextFrame, std::placeholders::_1, std::placeholders::_2, sink_fp) );
 	encode.join();
