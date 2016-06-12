@@ -181,13 +181,15 @@ again_read:
 	mfxU8* swap_buffer = new mfxU8[swap_buffer_len];
 	memset(swap_buffer, 0x00, swap_buffer_len);
 
+	std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
+	int64_t elipse = 0;
 	//
 	// Stage 1: Main decoding loop
 	//
 	while (!m_exited /*||MFX_ERR_NONE <= sts || MFX_ERR_MORE_DATA == sts || MFX_ERR_MORE_SURFACE == sts*/) {
 
-		std::chrono::time_point<std::chrono::high_resolution_clock> start = std::chrono::high_resolution_clock::now();
-		int64_t elipse = 0;
+		start = std::chrono::high_resolution_clock::now();
+		
 
 		if (MFX_WRN_DEVICE_BUSY == sts)
 			MSDK_SLEEP(1);  // Wait if device is busy, then repeat the same call to DecodeFrameAsync
@@ -201,6 +203,12 @@ again_read:
 			if (nBytesRead <= 0) {
 				sts = MFX_ERR_MORE_DATA;
 				printf("No data!\n");
+			
+				//FIXME: TEST!!!
+				m_exited = true;
+				break;
+
+
 				MSDK_SLEEP(3);
 				continue;
 			}
@@ -230,12 +238,14 @@ again_read:
 				sts = mfxAllocator.Lock(mfxAllocator.pthis, pmfxOutSurface->Data.MemId, &(pmfxOutSurface->Data));
 				MSDK_BREAK_ON_ERROR(sts);
 
-				start = std::chrono::high_resolution_clock::now();
+				std::chrono::time_point<std::chrono::high_resolution_clock> start0, end0;
+				start0 = std::chrono::high_resolution_clock::now();
 
 				sts = WriteRawFrame(pmfxOutSurface, swap_buffer, swap_buffer_len);
 				MSDK_BREAK_ON_ERROR(sts);
 
-				elipse = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count();
+				end0 = std::chrono::high_resolution_clock::now();
+				int64_t elipse0 = std::chrono::duration_cast<std::chrono::milliseconds>(end0 - start0).count();
 
 				mfxU32 nBytesWritten = m_sink_callback(swap_buffer, swap_buffer_len);
 				//if (nBytesWritten != swap_buffer_len)  //no need check the value of the return!!!
@@ -245,10 +255,10 @@ again_read:
 				sts = mfxAllocator.Unlock(mfxAllocator.pthis, pmfxOutSurface->Data.MemId, &(pmfxOutSurface->Data));
 				MSDK_BREAK_ON_ERROR(sts);
 
-				
-				//elipse = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count();
+				end = std::chrono::high_resolution_clock::now();
+				elipse = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-				printf("Frame number: %03d,WriteRawFrame:%03lld\r", nFrame,  elipse);
+				printf("Frame number: %03d,WriteRawFrame:%03lld, total:%03lld\r", nFrame,  elipse0, elipse);
 				fflush(stdout);
 			}
 		}

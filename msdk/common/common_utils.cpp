@@ -370,26 +370,6 @@ mfxStatus WriteRawFrame(mfxFrameSurface1* pSurface, mfxU8* buffer, mfxU32 buffer
 	for (i = 0; i < h; i++)
 		sts = WriteSection(pData->UV, 1, pInfo->CropW, pInfo, pData, i, 0, buffer, buffer_size, data_size);
 
-	//yyyyyyyyyy
-	//vuvuvu
-
-	//mfxStatus WriteSection(mfxU8* plane, mfxU16 factor, mfxU16 chunksize,
-	//	mfxFrameInfo* pInfo, mfxFrameData* pData, mfxU32 i,
-	//	mfxU32 j, mfxU8* buffer, mfxU32 buffer_size, mfxU32& data_size)
-	//{
-	//	//if (chunksize !=
-	//	//	fwrite(plane +
-	//	//		(pInfo->CropY * pData->Pitch / factor + pInfo->CropX) +
-	//	//		i * pData->Pitch + j, 1, chunksize, fSink))
-	//	//	return MFX_ERR_UNDEFINED_BEHAVIOR;
-
-	//	memcpy(buffer + data_size, plane + (pInfo->CropY * pData->Pitch / factor + pInfo->CropX) + i * pData->Pitch + j, chunksize);
-	//	data_size += chunksize;
-
-	//	return MFX_ERR_NONE;
-	//}
-
-
 	//for yv12
 	//h = pInfo->CropH / 2;
 	//w = pInfo->CropW;
