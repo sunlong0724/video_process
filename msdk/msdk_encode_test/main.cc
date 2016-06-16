@@ -160,17 +160,17 @@ int32_t WriteNextFrame(unsigned char* buffer, int32_t buffer_len, void*  ctx) {
 	nBytesWritten = fwrite(buffer, 1, buffer_len, fp);
 
 	//test
-	//static int i = 0;
+	static int i = 0;
 
 	////00 00 00 01 09 10 00 00 00 01 27
-	//if (buffer[5] == 0x10) {
-	//	char file_buf[1024];
-	//	snprintf(file_buf, sizeof file_buf, "%02d.264", i);
-	//	FILE* t_fp = fopen(file_buf, "wb");
-	//	nBytesWritten = fwrite(buffer, 1, buffer_len, t_fp);
-	//	fclose(t_fp);
-	//}
-	//i++;
+	if (buffer[5] == 0x10) {
+		char file_buf[1024];
+		snprintf(file_buf, sizeof file_buf, "%02d.264", i);
+		FILE* t_fp = fopen(file_buf, "wb");
+		nBytesWritten = fwrite(buffer, 1, buffer_len, t_fp);
+		fclose(t_fp);
+	}
+	i++;
 	
 	return (int32_t)nBytesWritten;
 }
@@ -194,7 +194,7 @@ int main(int argc, char** argv) {
 	sink_fp = fopen(sink_name, "wb");
 
 	CEncodeThread encode;
-	std::string paramter("-g 1920x1080 -b 3000 -f 170/1 -gop 45");
+	std::string paramter("-g 1920x1080 -b 3000 -f 25/1 -gop 25");
 
 	if (argc > 2) {
 		paramter.clear();

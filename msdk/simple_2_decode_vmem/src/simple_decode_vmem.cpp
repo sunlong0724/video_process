@@ -96,7 +96,7 @@ int32_t CDecodeThread::run()
 	// - Arbitrary buffer size for this example
 	mfxBitstream mfxBS;
 	memset(&mfxBS, 0, sizeof(mfxBS));
-	mfxBS.MaxLength = 1024 * 1024;
+	mfxBS.MaxLength = 1024 * 1024 * 50;
 	mfxBS.Data = new mfxU8[mfxBS.MaxLength];
 	MSDK_CHECK_POINTER(mfxBS.Data, MFX_ERR_MEMORY_ALLOC);
 
@@ -177,19 +177,19 @@ again_read:
 	options.values.Width = mfxVideoParams.mfx.FrameInfo.CropW;
 	options.values.Height = mfxVideoParams.mfx.FrameInfo.CropH;
 
-	mfxU32  swap_buffer_len = options.values.Width *options.values.Height * 3 / 2;//for yv12
-	mfxU8* swap_buffer = new mfxU8[swap_buffer_len];
-	memset(swap_buffer, 0x00, swap_buffer_len);
+	//mfxU32  swap_buffer_len = options.values. *options.values.Height * 3 / 2;//for yv12
+	mfxU8*  swap_buffer = NULL;
+	mfxU32  swap_buffer_len = 0;
 
-	std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
+	std::chrono::time_point<std::chrono::high_resolution_clock> start_all, start, end;
 	int64_t elipse = 0;
+	int64_t elipse1 = 0;
+	int64_t elipse_read_file = 0;
 	//
 	// Stage 1: Main decoding loop
 	//
-	while (!m_exited /*||MFX_ERR_NONE <= sts || MFX_ERR_MORE_DATA == sts || MFX_ERR_MORE_SURFACE == sts*/) {
-
-		start = std::chrono::high_resolution_clock::now();
-		
+	while (MFX_ERR_NONE <= sts && !m_exited || MFX_ERR_MORE_SURFACE == sts  || MFX_ERR_MORE_DATA == sts) {
+		start_all = start = std::chrono::high_resolution_clock::now();
 
 		if (MFX_WRN_DEVICE_BUSY == sts)
 			MSDK_SLEEP(1);  // Wait if device is busy, then repeat the same call to DecodeFrameAsync
@@ -200,6 +200,7 @@ again_read:
 			mfxBS.DataOffset = 0;
 
 			nBytesRead = this->m_source_callback(mfxBS.Data + mfxBS.DataLength, mfxBS.MaxLength - mfxBS.DataLength);
+
 			if (nBytesRead <= 0) {
 				sts = MFX_ERR_MORE_DATA;
 				printf("No data!\n");
@@ -208,20 +209,31 @@ again_read:
 				m_exited = true;
 				break;
 
-
 				MSDK_SLEEP(3);
 				continue;
 			}
 			mfxBS.DataLength += nBytesRead;
 		}
 
+		end = std::chrono::high_resolution_clock::now();
+		int elipse1 = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		start = end;
+
+
 		if (MFX_ERR_MORE_SURFACE == sts || MFX_ERR_NONE == sts) {
 			nIndex = GetFreeSurfaceIndex(pmfxSurfaces, numSurfaces);        // Find free frame surface
 			MSDK_CHECK_ERROR(MFX_ERR_NOT_FOUND, nIndex, MFX_ERR_MEMORY_ALLOC);
 		}
+
+		int elipse2 = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		start = end;
+
 		// Decode a frame asychronously (returns immediately)
 		//  - If input bitstream contains multiple frames DecodeFrameAsync will start decoding multiple frames, and remove them from bitstream
 		sts = mfxDEC.DecodeFrameAsync(&mfxBS, pmfxSurfaces[nIndex], &pmfxOutSurface, &syncp);
+
+		int elipse3 = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		start = end;
 
 		// Ignore warnings if output is available,
 		// if no output and no action required just repeat the DecodeFrameAsync call
@@ -230,6 +242,9 @@ again_read:
 
 		if (MFX_ERR_NONE == sts)
 			sts = session.SyncOperation(syncp, 60000);      // Synchronize. Wait until decoded frame is ready
+
+		int elipse4 = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+		start = end;
 
 		if (MFX_ERR_NONE == sts) {
 			++nFrame;
@@ -240,6 +255,16 @@ again_read:
 
 				std::chrono::time_point<std::chrono::high_resolution_clock> start0, end0;
 				start0 = std::chrono::high_resolution_clock::now();
+
+				if (swap_buffer == NULL) {
+#ifdef LINE_COPY_NV12
+					swap_buffer_len =pmfxOutSurface->Info.CropW * pmfxOutSurface->Info.CropH * 3 / 2;
+#else
+					swap_buffer_len = pmfxOutSurface->Data.Pitch /*pmfxOutSurface->Info.CropW */* pmfxOutSurface->Info.CropH * 3 / 2;
+#endif
+					swap_buffer = new mfxU8[swap_buffer_len];
+					memset(swap_buffer, 0x00, swap_buffer_len);
+				}
 
 				sts = WriteRawFrame(pmfxOutSurface, swap_buffer, swap_buffer_len);
 				MSDK_BREAK_ON_ERROR(sts);
@@ -256,10 +281,10 @@ again_read:
 				MSDK_BREAK_ON_ERROR(sts);
 
 				end = std::chrono::high_resolution_clock::now();
-				elipse = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+				int64_t elipse4= std::chrono::duration_cast<std::chrono::milliseconds>(end - start_all).count();
 
-				printf("Frame number: %03d,WriteRawFrame:%03lld, total:%03lld\r", nFrame,  elipse0, elipse);
-				fflush(stdout);
+				//printf("Frame number: %03d,WriteRawFrame:%03lld, elipse1:%03lld,elipse2:%03lld,elipse3:%03lld,elipse4:%03lld, threadid:%d\r\n", nFrame,  elipse0,elipse1, elipse2, elipse3,elipse4, std::this_thread::get_id());
+				//fflush(stdout);
 			}
 		}
 	}
@@ -271,7 +296,7 @@ again_read:
 	//
 	// Stage 2: Retrieve the buffered decoded frames
 	//
-	while (!m_exited || MFX_ERR_NONE <= sts || MFX_ERR_MORE_SURFACE == sts) {
+	while (MFX_ERR_NONE <= sts  || MFX_ERR_MORE_SURFACE == sts ) {
 		if (MFX_WRN_DEVICE_BUSY == sts)
 			MSDK_SLEEP(1);  // Wait if device is busy, then repeat the same call to DecodeFrameAsync
 
@@ -295,6 +320,16 @@ again_read:
 				// Surface locking required when read/write D3D surfaces
 				sts = mfxAllocator.Lock(mfxAllocator.pthis, pmfxOutSurface->Data.MemId, &(pmfxOutSurface->Data));
 				MSDK_BREAK_ON_ERROR(sts);
+
+				if (swap_buffer == NULL) {
+#ifdef LINE_COPY_NV12
+					swap_buffer_len = pmfxOutSurface->Info.CropW * pmfxOutSurface->Info.CropH * 3 / 2;
+#else
+					swap_buffer_len = pmfxOutSurface->Data.Pitch /*pmfxOutSurface->Info.CropW */* pmfxOutSurface->Info.CropH * 3 / 2;
+#endif
+					swap_buffer = new mfxU8[swap_buffer_len];
+					memset(swap_buffer, 0x00, swap_buffer_len);
+				}
 
 				sts = WriteRawFrame(pmfxOutSurface, swap_buffer, swap_buffer_len);
 				MSDK_BREAK_ON_ERROR(sts);

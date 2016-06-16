@@ -14,6 +14,7 @@ Copyright(c) 2005-2014 Intel Corporation. All Rights Reserved.
 
 #include "mfxvideo++.h"
 
+
 // =================================================================
 // OS-specific definitions of types, macro, etc...
 // The following should be defined:

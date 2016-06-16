@@ -161,9 +161,9 @@ int32_t WriteNextFrame(unsigned char* buffer, int32_t buffer_len, void*  ctx) {
 	
 
 	// FIXME: DON'T WRITE !!! 
-	nBytesWritten = fwrite(buffer, 1, buffer_len, fp);
-
-	return (int32_t)nBytesWritten;
+	//nBytesWritten = fwrite(buffer, 1, buffer_len, fp);
+	//return (int32_t)nBytesWritten;
+	return buffer_len;
 }
 
 bool g_running_flag = true;
@@ -179,8 +179,6 @@ void sig_cb(int sig)
 int main(int argc, char** argv) {
 	signal(SIGINT, sig_cb);  /*×¢²áctrl+cÐÅºÅ²¶»ñº¯Êý*/
 
-	FILE* source_fp = NULL;
-	FILE* sink_fp = NULL;
 
 	if (argc < 2) {
 		fprintf(stderr, "two paramteters are needed!\n");
@@ -188,24 +186,44 @@ int main(int argc, char** argv) {
 	}
 
 
-	char* source_name = argv[1];
+	char* source_name = argv[1];// "out_1280x720p.264";
 	char* sink_name = "out.yuv";
 
+	//thread 1
+	FILE* source_fp = NULL;
+	FILE* sink_fp = NULL;
 	source_fp = fopen(source_name, "rb");
 	sink_fp = fopen(sink_name, "wb");
 
 	CDecodeThread decode;
 	std::string paramter("decode ");
 	decode.init(paramter.data());
-	decode.start(std::bind(ReadNextFrame, std::placeholders::_1, std::placeholders::_2, source_fp), std::bind(WriteNextFrame, std::placeholders::_1, std::placeholders::_2, sink_fp) );
+	decode.start(std::bind(ReadNextFrame, std::placeholders::_1, std::placeholders::_2, source_fp), std::bind(WriteNextFrame, std::placeholders::_1, std::placeholders::_2, sink_fp));
+
+	std::this_thread::sleep_for(std::chrono::seconds(10));
+
+	//thread 2
+	//FILE* source_fp1 = NULL;
+	//FILE* sink_fp1 = NULL;
+	//source_fp1 = fopen(source_name, "rb");
+	//sink_fp1 = fopen(sink_name, "wb");
+
+	//CDecodeThread decode2;
+	//std::string paramter2("decode ");
+	//decode2.init(paramter2.data());
+	//decode2.start(std::bind(ReadNextFrame, std::placeholders::_1, std::placeholders::_2, source_fp1), std::bind(WriteNextFrame, std::placeholders::_1, std::placeholders::_2, sink_fp1));
+
 	
-	while(g_running_flag)
+	while (g_running_flag)
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-	decode.stop();
+	decode.join();
+	//decode2.join();
 
 	fclose(sink_fp);
 	fclose(source_fp);
 
+	//fclose(sink_fp1);
+	//fclose(source_fp1);
 	return 0;
 }

@@ -155,6 +155,7 @@
       <TreatWarningAsError>false</TreatWarningAsError>
       <DebugInformationFormat>
       </DebugInformationFormat>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <AdditionalDependencies>libmfx.lib;dxva2.lib;d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -184,6 +185,7 @@
       <WarningLevel>Level3</WarningLevel>
       <TreatWarningAsError>false</TreatWarningAsError>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <AdditionalDependencies>libmfx.lib;dxva2.lib;d3d9.lib;%(AdditionalDependencies)</AdditionalDependencies>

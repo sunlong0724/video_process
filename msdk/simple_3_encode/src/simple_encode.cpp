@@ -142,6 +142,8 @@ int32_t CEncodeThread::run() {
 	mfxEncParams.mfx.TargetUsage = MFX_TARGETUSAGE_BALANCED;
 	if (options.values.GopPicSize != 0)
 		mfxEncParams.mfx.GopPicSize = options.values.GopPicSize;
+	mfxEncParams.mfx.GopRefDist = 1;//don't use b.
+
 	mfxEncParams.mfx.TargetKbps = options.values.Bitrate;
 	mfxEncParams.mfx.RateControlMethod = MFX_RATECONTROL_VBR;
 	mfxEncParams.mfx.FrameInfo.FrameRateExtN = options.values.FrameRateN;

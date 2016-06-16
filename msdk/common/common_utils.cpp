@@ -9,6 +9,7 @@ Copyright(c) 2005-2014 Intel Corporation. All Rights Reserved.
 *****************************************************************************/
 
 #include "common_utils.h"
+#include <nmmintrin.h>
 
 // =================================================================
 // Utility functions, not directly tied to Intel Media SDK functionality
@@ -354,6 +355,99 @@ mfxStatus WriteSection(mfxU8* plane, mfxU16 factor, mfxU16 chunksize,
 	return MFX_ERR_NONE;
 }
 
+//  CopyFrame( )
+//
+//  COPIES VIDEO FRAMES FROM USWC MEMORY TO WB SYSTEM MEMORY VIA CACHED BUFFER
+//    ASSUMES PITCH IS A MULTIPLE OF 64B CACHE LINE SIZE, WIDTH MAY NOT BE
+
+typedef		unsigned int		UINT;
+#define		CACHED_BUFFER_SIZE	4096	
+
+void	CopyFrame(void * pSrc, void * pDest, void * pCacheBlock,
+	UINT width, UINT height, UINT pitch)
+{
+	__m128i		x0, x1, x2, x3;
+	__m128i		*pLoad;
+	__m128i		*pStore;
+	__m128i		*pCache;
+	UINT		x, y, yLoad, yStore;
+	UINT		rowsPerBlock;
+	UINT		width64;
+	UINT		extraPitch;
+
+
+	rowsPerBlock = CACHED_BUFFER_SIZE / pitch;
+	width64 = (width + 63) & ~0x03f;
+	extraPitch = (pitch - width64) / 16;
+
+	pLoad = (__m128i *)pSrc;
+	pStore = (__m128i *)pDest;
+
+	//  COPY THROUGH 4KB CACHED BUFFER
+	for (y = 0; y < height; y += rowsPerBlock)
+	{
+		//  ROWS LEFT TO COPY AT END
+		if (y + rowsPerBlock > height)
+			rowsPerBlock = height - y;
+
+		pCache = (__m128i *)pCacheBlock;
+
+		_mm_mfence();
+
+		// LOAD ROWS OF PITCH WIDTH INTO CACHED BLOCK
+		for (yLoad = 0; yLoad < rowsPerBlock; yLoad++)
+		{
+			// COPY A ROW, CACHE LINE AT A TIME
+			for (x = 0; x < pitch; x += 64)
+			{
+				x0 = _mm_stream_load_si128(pLoad + 0);
+				x1 = _mm_stream_load_si128(pLoad + 1);
+				x2 = _mm_stream_load_si128(pLoad + 2);
+				x3 = _mm_stream_load_si128(pLoad + 3);
+
+				_mm_store_si128(pCache + 0, x0);
+				_mm_store_si128(pCache + 1, x1);
+				_mm_store_si128(pCache + 2, x2);
+				_mm_store_si128(pCache + 3, x3);
+
+				pCache += 4;
+				pLoad += 4;
+			}
+		}
+
+		_mm_mfence();
+
+		pCache = (__m128i *)pCacheBlock;
+
+		// STORE ROWS OF FRAME WIDTH FROM CACHED BLOCK
+		for (yStore = 0; yStore < rowsPerBlock; yStore++)
+		{
+			// copy a row, cache line at a time
+			for (x = 0; x < width64; x += 64)
+			{
+				x0 = _mm_load_si128(pCache);
+				x1 = _mm_load_si128(pCache + 1);
+				x2 = _mm_load_si128(pCache + 2);
+				x3 = _mm_load_si128(pCache + 3);
+
+				_mm_stream_si128(pStore, x0);
+				_mm_stream_si128(pStore + 1, x1);
+				_mm_stream_si128(pStore + 2, x2);
+				_mm_stream_si128(pStore + 3, x3);
+
+				pCache += 4;
+				pStore += 4;
+			}
+
+			pCache += extraPitch;
+			pStore += extraPitch;
+		}
+	}
+}
+
+#define		CACHED_BUFFER_SIZE	4096	
+mfxU8*  g_swap_buffer2 = new mfxU8[CACHED_BUFFER_SIZE];
+
 mfxStatus WriteRawFrame(mfxFrameSurface1* pSurface, mfxU8* buffer, mfxU32 buffer_size)
 {
 	mfxFrameInfo* pInfo = &pSurface->Info;
@@ -362,26 +456,29 @@ mfxStatus WriteRawFrame(mfxFrameSurface1* pSurface, mfxU8* buffer, mfxU32 buffer
 	mfxStatus sts = MFX_ERR_NONE;
 
 	mfxU32 data_size = 0;
-	for (i = 0; i < pInfo->CropH; i++)
+
+#ifdef LINE_COPY_NV12
+	/*for (i = 0; i < pInfo->CropH; i++)
 		sts = WriteSection(pData->Y, 1, pInfo->CropW, pInfo, pData, i, 0, buffer, buffer_size, data_size);
 
 	h = pInfo->CropH / 2;
 	w = pInfo->CropW;
 	for (i = 0; i < h; i++)
-		sts = WriteSection(pData->UV, 1, pInfo->CropW, pInfo, pData, i, 0, buffer, buffer_size, data_size);
+		sts = WriteSection(pData->UV, 1, pInfo->CropW, pInfo, pData, i, 0, buffer, buffer_size, data_size);*/
+#else
+	CopyFrame(pData->Y, buffer + data_size, g_swap_buffer2, pInfo->CropW, pInfo->CropH, pData->Pitch);
+	data_size += pData->Pitch*pInfo->CropH;
+	CopyFrame(pData->UV, buffer + data_size, g_swap_buffer2, pInfo->CropW, pInfo->CropH/2, pData->Pitch);
 
-	//for yv12
-	//h = pInfo->CropH / 2;
-	//w = pInfo->CropW;
-	//for (i = 0; i < h; i++)
-	//	for (j = 0; j < w; j += 2)
-	//		sts = WriteSection(pData->UV, 2, 1, pInfo, pData, i, j, buffer, buffer_size, data_size);
+	//memcpy(buffer + data_size, pData->Y , pData->Pitch*pInfo->CropH);
+	//data_size += pData->Pitch*pInfo->CropH;
+	//printf("datasize1:%d\n", data_size);
 
-	//for (i = 0; i < h; i++)
-	//	for (j = 1; j < w; j += 2)
-	//		sts =WriteSection(pData->UV, 2, 1, pInfo, pData, i, j, buffer, buffer_size, data_size);
+	//memcpy(buffer + data_size, pData->UV, pData->Pitch*pInfo->CropH /2);
+	//data_size += pData->Pitch*pInfo->CropH/2;
+	//printf("datasize2:%d\n", data_size);
 
-
+#endif
 	return sts;
 }
 
