@@ -11,7 +11,7 @@ Copyright(c) 2005-2014 Intel Corporation. All Rights Reserved.
 #include "common_utils.h"
 #include "cmd_options.h"
 
-#include "msdk_decode.h"
+#include "msdk_codec.h"
 
 static void usage(CmdOptionsCtx* ctx)
 {
@@ -203,11 +203,11 @@ again_read:
 
 			if (nBytesRead <= 0) {
 				sts = MFX_ERR_MORE_DATA;
-				printf("No data!\n");
+				printf("No data!\r");
 			
 				////FIXME: TEST!!!
-				m_exited = true;
-				break;
+				//m_exited = true;
+				//break;
 
 				MSDK_SLEEP(3);
 				continue;
@@ -257,11 +257,7 @@ again_read:
 				start0 = std::chrono::high_resolution_clock::now();
 
 				if (swap_buffer == NULL) {
-#ifdef LINE_COPY_NV12
-					swap_buffer_len =pmfxOutSurface->Info.CropW * pmfxOutSurface->Info.CropH * 3 / 2;
-#else
 					swap_buffer_len = pmfxOutSurface->Data.Pitch /*pmfxOutSurface->Info.CropW */* pmfxOutSurface->Info.CropH * 3 / 2;
-#endif
 					swap_buffer = new mfxU8[swap_buffer_len];
 					memset(swap_buffer, 0x00, swap_buffer_len);
 				}
@@ -322,11 +318,7 @@ again_read:
 				MSDK_BREAK_ON_ERROR(sts);
 
 				if (swap_buffer == NULL) {
-#ifdef LINE_COPY_NV12
-					swap_buffer_len = pmfxOutSurface->Info.CropW * pmfxOutSurface->Info.CropH * 3 / 2;
-#else
 					swap_buffer_len = pmfxOutSurface->Data.Pitch /*pmfxOutSurface->Info.CropW */* pmfxOutSurface->Info.CropH * 3 / 2;
-#endif
 					swap_buffer = new mfxU8[swap_buffer_len];
 					memset(swap_buffer, 0x00, swap_buffer_len);
 				}
@@ -394,3 +386,83 @@ void CDecodeThread::stop() {
 void CDecodeThread::join() {
 	m_impl.join();
 }
+
+////////////////////////////////TEST!!!////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#if 1
+int32_t ReadNextFrame(unsigned char* buffer, int32_t buffer_len, void* ctx) {
+	size_t nBytesRead = 0;
+	FILE* fp = (FILE*)ctx;
+
+	MSDK_CHECK_POINTER(fp, MFX_ERR_NULL_PTR);
+	MSDK_CHECK_POINTER(buffer, MFX_ERR_NULL_PTR);
+
+	nBytesRead = fread(buffer, 1, buffer_len, fp);
+	return (int32_t)nBytesRead;
+}
+
+int32_t WriteNextFrame(unsigned char* buffer, int32_t buffer_len, void*  ctx) {
+	size_t nBytesWritten = 0;
+	FILE* fp = (FILE*)ctx;
+
+	MSDK_CHECK_POINTER(fp, MFX_ERR_NULL_PTR);
+	MSDK_CHECK_POINTER(buffer, MFX_ERR_NULL_PTR);
+
+
+	// FIXME: DON'T WRITE !!! 
+#if 0
+	nBytesWritten = fwrite(buffer, 1, buffer_len, fp);
+	return (int32_t)nBytesWritten;
+#else
+	return buffer_len;
+#endif
+}
+
+#include <signal.h>
+bool g_running_flag = true;
+void sig_cb(int sig)
+{
+	if (sig == SIGINT) {
+		g_running_flag = false;
+	}
+}
+
+
+int main(int argc, char** argv) {
+	signal(SIGINT, sig_cb);  /*×¢²áctrl+cÐÅºÅ²¶»ñº¯Êý*/
+
+
+	if (argc < 2) {
+		fprintf(stderr, "two paramteters are needed!\n");
+		exit(0);
+	}
+
+
+	char* source_name = argv[1];// "out_1280x720p.264";
+	char* sink_name = "out.yuv";
+
+	//thread 1
+	FILE* source_fp = NULL;
+	FILE* sink_fp = NULL;
+	source_fp = fopen(source_name, "rb");
+	sink_fp = fopen(sink_name, "wb");
+
+	CDecodeThread decode;
+	std::string paramter("decode ");
+	decode.init(paramter.data());
+	decode.start(std::bind(ReadNextFrame, std::placeholders::_1, std::placeholders::_2, source_fp), std::bind(WriteNextFrame, std::placeholders::_1, std::placeholders::_2, sink_fp));
+
+	std::this_thread::sleep_for(std::chrono::seconds(10));
+
+
+	while (g_running_flag)
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+	decode.join();
+
+	fclose(sink_fp);
+	fclose(source_fp);
+	return 0;
+}
+
+#endif
