@@ -1,0 +1,26 @@
+﻿  FFmpegWriter.cc
+e:\workspace\video_process\ffmpeg_writer\ffmpeg_writer\ffmpegwriter.cc(167): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(119): note: 参见“strcpy”的声明
+e:\workspace\video_process\ffmpeg_writer\ffmpeg_writer\ffmpegwriter.cc(169): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(453): note: 参见“strtok”的声明
+e:\workspace\video_process\ffmpeg_writer\ffmpeg_writer\ffmpegwriter.cc(173): warning C4996: 'strcpy': This function or variable may be unsafe. Consider using strcpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(119): note: 参见“strcpy”的声明
+e:\workspace\video_process\ffmpeg_writer\ffmpeg_writer\ffmpegwriter.cc(174): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(453): note: 参见“strtok”的声明
+e:\workspace\video_process\ffmpeg_writer\ffmpeg_writer\ffmpegwriter.cc(185): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(2254): note: 参见“sscanf”的声明
+e:\workspace\video_process\ffmpeg_writer\ffmpeg_writer\ffmpegwriter.cc(211): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(2254): note: 参见“sscanf”的声明
+e:\workspace\video_process\ffmpeg_writer\ffmpeg_writer\ffmpegwriter.cc(339): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(453): note: 参见“strtok”的声明
+e:\workspace\video_process\ffmpeg_writer\ffmpeg_writer\ffmpegwriter.cc(345): warning C4996: 'strtok': This function or variable may be unsafe. Consider using strtok_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\string.h(453): note: 参见“strtok”的声明
+e:\workspace\video_process\ffmpeg_writer\ffmpeg_writer\ffmpegwriter.cc(400): warning C4244: “初始化”: 从“double”转换到“int64_t”，可能丢失数据
+e:\workspace\video_process\ffmpeg_writer\ffmpeg_writer\msdk_encode.h(23): warning C4251: “CEncodeThread::m_impl”: class“std::thread”需要有 dll 接口由 class“CEncodeThread”的客户端使用
+  d:\program files (x86)\microsoft visual studio 14.0\vc\include\thread(32): note: 参见“std::thread”的声明
+e:\workspace\video_process\ffmpeg_writer\ffmpeg_writer\msdk_encode.h(24): warning C4251: “CEncodeThread::m_source_callback”: class“std::function<int32_t (unsigned char *,int32_t)>”需要有 dll 接口由 class“CEncodeThread”的客户端使用
+e:\workspace\video_process\ffmpeg_writer\ffmpeg_writer\msdk_encode.h(25): warning C4251: “CEncodeThread::m_sink_callback”: class“std::function<int32_t (unsigned char *,int32_t)>”需要有 dll 接口由 class“CEncodeThread”的客户端使用
+e:\workspace\video_process\ffmpeg_writer\ffmpeg_writer\ffmpegwriter.cc(487): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(205): note: 参见“fopen”的声明
+    正在创建库 E:\workspace\video_process\ffmpeg_writer\Debug\ffmpeg_writerd.lib 和对象 E:\workspace\video_process\ffmpeg_writer\Debug\ffmpeg_writerd.exp
+  ffmpeg_writer.vcxproj -> E:\workspace\video_process\ffmpeg_writer\Debug\ffmpeg_writerd.dll

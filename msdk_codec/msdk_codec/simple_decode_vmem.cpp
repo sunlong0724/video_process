@@ -389,7 +389,7 @@ void CDecodeThread::join() {
 
 ////////////////////////////////TEST!!!////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if 1
+#if 0
 int32_t ReadNextFrame(unsigned char* buffer, int32_t buffer_len, void* ctx) {
 	size_t nBytesRead = 0;
 	FILE* fp = (FILE*)ctx;
@@ -428,7 +428,7 @@ void sig_cb(int sig)
 }
 
 
-int main(int argc, char** argv) {
+int main000(int argc, char** argv) {
 	signal(SIGINT, sig_cb);  /*×¢²áctrl+cÐÅºÅ²¶»ñº¯Êý*/
 
 

@@ -237,7 +237,7 @@ void ParseOptions(const std::string& parameters, CmdOptions* cmd_options)
 		}
 	}
 	if (i < argc) {
-		printf("error: too many arguments\n");
+		printf("error: FFmpegWriter too many arguments\n");
 		exit(-1);
 	}
 
@@ -471,10 +471,10 @@ int32_t CFFmpegRgb2Yuv::rgb2yuv(unsigned char* dst, unsigned char* src) {
 }
 
 
-#if 0
+#if 1
 
 #include "msdk_encode.h"
-int main0(int argc, char** argv) {
+int main(int argc, char** argv) {
 
 	std::string paramter("-g 1920x1080 -b 3000 -f 30/1 -gop 45");
 

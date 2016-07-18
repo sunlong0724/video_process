@@ -330,7 +330,7 @@ bool CEncodeThread::init(const char* params){
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-#if 0
+#if 1
 
 FILE* g_reader = NULL;
 FILE* g_writer = NULL;
@@ -369,6 +369,15 @@ int32_t WriteNextFrame(unsigned char* buffer, int32_t buffer_len, void*  ctx) {
 	if (nBytesWritten != buffer_len) {
 		/*	fclose(g_writer);
 		g_writer = NULL;*/
+	}
+
+	char name[100];
+	static int i = 0;
+	sprintf(name, "%d.264", ++i);
+	FILE* fp = fopen(name, "wb");
+	if (fp) {
+		fwrite(buffer, 1, buffer_len, fp);
+		fclose(fp);
 	}
 	return (int32_t)nBytesWritten;
 }
